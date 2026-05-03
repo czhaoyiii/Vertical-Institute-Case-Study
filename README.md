@@ -35,7 +35,7 @@ Open `.env` and fill in your values:
 ```
 ADMIN_USER=admin
 ADMIN_PASS=vertical
-OPENAI_API_KEY=sk-...    # optional — app works offline without it
+OPENAI_API_KEY=sk-...    # optional — project still works offline without it
 ```
 
 `ADMIN_USER` and `ADMIN_PASS` are the HTTP Basic Auth credentials for the staff portal. The defaults (`admin` / `vertical`) work out of the box if you leave them blank.
