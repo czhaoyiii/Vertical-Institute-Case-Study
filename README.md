@@ -10,7 +10,6 @@ Built with Ruby on Rails 8.1, SQLite, Tailwind CSS, and OpenAI.
 
 - Ruby 3.4+
 - Bundler (`gem install bundler`)
-- foreman (`gem install foreman`) — installed automatically by setup
 
 ---
 
@@ -52,13 +51,21 @@ Seed data creates:
 - ~40 enrollments and ~1,200 activity events
 - Risk scores computed for every enrollment
 
-### 4. Start the development server
+### 4. Build CSS
 
 ```bash
-bin/dev
+bin/rails tailwindcss:build
 ```
 
-This runs Puma and the Tailwind CSS watcher in parallel via foreman. The app will be available at [http://localhost:3000](http://localhost:3000).
+This compiles `app/assets/tailwind/application.css` into `app/assets/builds/tailwind.css`. The built file is gitignored, so this step is required on every fresh clone.
+
+### 5. Start the development server
+
+```bash
+rails s
+```
+
+This runs Puma and the Tailwind CSS watcher in parallel. The app will be available at [http://localhost:3000](http://localhost:3000).
 
 Log in with `admin` / `vertical` (or whatever you set in `.env`).
 
