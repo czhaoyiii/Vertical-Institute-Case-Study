@@ -1,0 +1,12 @@
+<%
+  pct = (enrollment.progress_pct * 100).round
+%>
+<div class="w-full">
+  <div class="flex items-center justify-between text-xs text-slate-500">
+    <span><%= pct %>% complete</span>
+    <span class="text-slate-400"><%= enrollment.lessons_viewed_count %>/<%= enrollment.course.total_lessons %> lessons</span>
+  </div>
+  <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+    <div class="h-full rounded-full <%= progress_bar_color(enrollment) %>" style="width: <%= [ pct, 100 ].min %>%"></div>
+  </div>
+</div>

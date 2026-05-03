@@ -1,0 +1,3 @@
+<%= turbo_frame_tag dom_id(@enrollment, :follow_up) do %>
+  <%= render partial: "students/follow_up_actions", locals: { enrollment: @enrollment } %>
+<% end %>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html class="h-full bg-slate-50">
+  <head>
+    <title><%= content_for(:title) || "Vertical Institute · At-Risk Tool" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="VI At-Risk Tool">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full font-[Inter,system-ui,sans-serif] text-slate-900 antialiased">
+    <%= render "shared/topnav" %>
+
+    <% if notice %>
+      <div class="mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200"><%= notice %></div>
+      </div>
+    <% end %>
+    <% if alert %>
+      <div class="mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200"><%= alert %></div>
+      </div>
+    <% end %>
+
+    <main class="px-4 py-8 sm:px-6 lg:px-8">
+      <%= yield %>
+    </main>
+  </body>
+</html>

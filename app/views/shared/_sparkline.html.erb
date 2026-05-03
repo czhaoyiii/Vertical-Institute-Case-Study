@@ -1,0 +1,50 @@
+<%
+  days       ||= 14
+  end_date   = Date.current
+  start_date = end_date - (days - 1).days
+  buckets    = (start_date..end_date).each_with_object({}) { |d, h| h[d] = 0 }
+
+  enrollment.activities
+    .where(occurred_at: start_date.beginning_of_day..end_date.end_of_day)
+    .where.not(kind: "live_session_missed")
+    .pluck(:occurred_at).each do |t|
+    key = t.to_date
+    buckets[key] = (buckets[key] || 0) + 1
+  end
+
+  values = buckets.values
+  max    = [ values.max || 1, 1 ].max
+  width  = 280
+  height = 56
+  step   = values.size > 1 ? width.to_f / (values.size - 1) : 0
+%>
+
+<div class="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+  <div class="flex items-center justify-between">
+    <p class="text-sm font-semibold text-slate-900">Activity · last <%= days %> days</p>
+    <p class="text-xs text-slate-500"><%= values.sum %> events</p>
+  </div>
+  <svg viewBox="0 0 <%= width %> <%= height %>" class="mt-3 h-14 w-full" preserveAspectRatio="none" aria-hidden="true">
+    <%
+      points = values.each_with_index.map do |v, i|
+        x = (i * step).round(2)
+        y = (height - (v.to_f / max) * (height - 4) - 2).round(2)
+        "#{x},#{y}"
+      end
+      area_points = ([ "0,#{height}" ] + points + [ "#{width},#{height}" ]).join(" ")
+      line_points = points.join(" ")
+    %>
+    <polyline points="<%= area_points %>" fill="rgba(99,102,241,0.10)" stroke="none" />
+    <polyline points="<%= line_points %>" fill="none" stroke="rgb(79,70,229)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <% values.each_with_index do |v, i|
+         next if v.zero?
+         cx = (i * step).round(2)
+         cy = (height - (v.to_f / max) * (height - 4) - 2).round(2) %>
+      <circle cx="<%= cx %>" cy="<%= cy %>" r="2" fill="rgb(79,70,229)" />
+    <% end %>
+  </svg>
+  <div class="mt-1 flex justify-between text-[10px] text-slate-400">
+    <span><%= start_date.strftime("%b %-d") %></span>
+    <span><%= end_date.strftime("%b %-d") %></span>
+  </div>
+</div>

@@ -1,0 +1,195 @@
+<% content_for :title, "Student Follow-Up Dashboard · Vertical Institute" %>
+
+<div class="mx-auto max-w-7xl space-y-8">
+  <header>
+    <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Student Follow-Up Dashboard</h1>
+    <p class="mt-1 text-sm text-slate-500">Identify and support students who may need follow-up attention.</p>
+  </header>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <%= render "shared/stat_card", title: "Total Students",   value: @total_students,    sublabel: "#{@total_enrollments} active enrollments", icon: :users,   tone: "default" %>
+    <%= render "shared/stat_card", title: "At Risk",          value: @at_risk_count,     sublabel: "#{@at_risk_pct}% of enrollments",           icon: :warning, tone: "amber" %>
+    <%= render "shared/stat_card", title: "Needs Attention",  value: @follow_ups_due,    sublabel: "High-priority follow-up",                   icon: :alert,   tone: "rose" %>
+    <%= render "shared/stat_card", title: "Avg Progress",     value: "#{@avg_progress}%", sublabel: "Across all courses",                       icon: :trend,   tone: "emerald" %>
+  </div>
+
+  <%= form_with url: root_path, method: :get,
+        data: { turbo_frame: "students_table", turbo_action: "advance", controller: "search" },
+        class: "rounded-xl bg-white p-4 ring-1 ring-slate-200 shadow-sm" do |form| %>
+    <div class="flex flex-col gap-3">
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+          </svg>
+        </span>
+        <input type="search" name="q" value="<%= @search %>" placeholder="Search students…"
+               data-action="input->search#search"
+               class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <select name="risk" onchange="this.form.requestSubmit()"
+                class="rounded-lg border-0 bg-white py-2 pl-3 pr-3 text-sm text-slate-700 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-indigo-500">
+          <option value="all"    <%= "selected" if @risk_filter == "all"    %>>All Risk Levels</option>
+          <option value="high"   <%= "selected" if @risk_filter == "high"   %>>High Risk</option>
+          <option value="medium" <%= "selected" if @risk_filter == "medium" %>>Medium Risk</option>
+          <option value="low"    <%= "selected" if @risk_filter == "low"    %>>Low Risk</option>
+        </select>
+        <select name="course_id" onchange="this.form.requestSubmit()"
+                class="rounded-lg border-0 bg-white py-2 pl-3 pr-3 text-sm text-slate-700 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-indigo-500">
+          <option value="">All Courses</option>
+          <% @courses.each do |c| %>
+            <option value="<%= c.id %>" <%= "selected" if @course_filter.to_s == c.id.to_s %>><%= c.name %></option>
+          <% end %>
+        </select>
+        <select name="sort_by" onchange="this.form.requestSubmit()"
+                class="rounded-lg border-0 bg-white py-2 pl-3 pr-3 text-sm text-slate-700 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-indigo-500">
+          <option value="risk"             <%= "selected" if @sort_by == "risk"             %>>Sort: Risk Level</option>
+          <option value="name_asc"         <%= "selected" if @sort_by == "name_asc"         %>>Sort: Name A–Z</option>
+          <option value="last_active_asc"  <%= "selected" if @sort_by == "last_active_asc"  %>>Sort: Least Active</option>
+          <option value="last_active_desc" <%= "selected" if @sort_by == "last_active_desc" %>>Sort: Most Active</option>
+        </select>
+      </div>
+    </div>
+  <% end %>
+
+  <%= turbo_frame_tag "students_table" do %>
+    <% if @enrollments.empty? %>
+      <%= render "shared/empty_state", title: "No students match these filters",
+            description: "Try clearing the risk or course filter.",
+            action_label: "Reset filters", action_path: root_path %>
+    <% else %>
+      <%# Mobile cards %>
+      <div class="space-y-3 md:hidden">
+        <% @enrollments.each do |e| %>
+          <%
+            pct         = (e.progress_pct * 100).round
+            att         = e.attendance_rate ? (e.attendance_rate * 100).round : nil
+            active_cls  = (e.last_active_at.nil? || e.days_since_active >= 7) ? "text-rose-600" : "text-slate-500"
+            att_cls     = att && att < 70 ? "text-rose-600" : "text-slate-500"
+          %>
+          <%= link_to student_path(e.student),
+                class: "block rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50",
+                data: { turbo_frame: "_top" } do %>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="truncate text-sm font-medium text-slate-900"><%= e.student.full_name %></span>
+                  <%= risk_badge_dot(e.risk_level) %>
+                </div>
+                <p class="mb-2 truncate text-sm text-slate-500"><%= e.course.name %></p>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  <span class="flex items-center gap-1 <%= active_cls %>">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3 w-3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <%= relative_last_active(e.last_active_at) %>
+                  </span>
+                  <span class="text-slate-500">Progress: <%= pct %>%</span>
+                  <% if att %>
+                    <span class="<%= att_cls %>">Attendance: <%= att %>%</span>
+                  <% end %>
+                </div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 flex-none text-slate-400">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+              </svg>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# Desktop table %>
+      <div class="hidden w-full overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm md:block">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Student</th>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Course</th>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Last Activity</th>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Progress</th>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Attendance</th>
+              <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Risk</th>
+              <th scope="col" class="w-10 px-3 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <% @enrollments.each do |e| %>
+              <%
+                last_active_class =
+                  if e.last_active_at.nil?         then "text-rose-600"
+                  elsif e.days_since_active >= 14  then "text-rose-600"
+                  elsif e.days_since_active >= 7   then "text-amber-600"
+                  else "text-slate-500"
+                  end
+                attendance_pct = e.attendance_rate ? (e.attendance_rate * 100).round : nil
+                attendance_class =
+                  if attendance_pct.nil?     then "text-slate-400"
+                  elsif attendance_pct < 60  then "text-rose-600 font-medium"
+                  elsif attendance_pct < 80  then "text-amber-600"
+                  else "text-slate-700"
+                  end
+                pct = (e.progress_pct * 100).round
+              %>
+              <tr class="group cursor-pointer transition hover:bg-slate-50" onclick="window.location='<%= student_path(e.student) %>'">
+                <td class="px-5 py-4">
+                  <p class="text-sm font-medium text-slate-900"><%= e.student.full_name %></p>
+                  <p class="text-xs text-slate-500"><%= e.student.email %></p>
+                </td>
+                <td class="px-5 py-4 text-sm text-slate-600"><%= e.course.name %></td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-x-1.5 text-sm <%= last_active_class %>">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <%= relative_last_active(e.last_active_at) %>
+                  </span>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-x-3">
+                    <div class="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
+                      <div class="h-full <%= progress_bar_color(e) %>" style="width: <%= [ pct, 100 ].min %>%"></div>
+                    </div>
+                    <span class="w-10 text-xs tabular-nums text-slate-500"><%= pct %>%</span>
+                  </div>
+                </td>
+                <td class="px-5 py-4 text-sm tabular-nums <%= attendance_class %>">
+                  <%= attendance_pct ? "#{attendance_pct}%" : "—" %>
+                </td>
+                <td class="px-5 py-4"><%= risk_badge(e.risk_level) %></td>
+                <td class="px-3 py-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                  </svg>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if @total_pages > 1 %>
+        <div class="flex items-center justify-between rounded-xl bg-white px-5 py-3 ring-1 ring-slate-200 shadow-sm">
+          <p class="text-xs text-slate-500">
+            Showing <%= ((@page - 1) * DashboardController::PER_PAGE) + 1 %>–<%= [ @page * DashboardController::PER_PAGE, @filtered_total ].min %>
+            of <%= @filtered_total %> students
+          </p>
+          <nav class="flex items-center gap-x-1">
+            <%= link_to "‹ Prev", root_path(risk: @risk_filter, course_id: @course_filter, q: @search.presence, sort_by: @sort_by, page: @page - 1),
+                  data: { turbo_frame: "students_table", turbo_action: "advance" },
+                  class: "rounded-md px-2.5 py-1 text-xs font-medium #{@page == 1 ? 'pointer-events-none text-slate-300' : 'text-slate-600 hover:bg-slate-100'}" %>
+            <% (1..@total_pages).each do |p| %>
+              <%= link_to p, root_path(risk: @risk_filter, course_id: @course_filter, q: @search.presence, sort_by: @sort_by, page: p),
+                    data: { turbo_frame: "students_table", turbo_action: "advance" },
+                    class: "min-w-[28px] rounded-md px-2 py-1 text-center text-xs font-medium #{p == @page ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}" %>
+            <% end %>
+            <%= link_to "Next ›", root_path(risk: @risk_filter, course_id: @course_filter, q: @search.presence, sort_by: @sort_by, page: @page + 1),
+                  data: { turbo_frame: "students_table", turbo_action: "advance" },
+                  class: "rounded-md px-2.5 py-1 text-xs font-medium #{@page == @total_pages ? 'pointer-events-none text-slate-300' : 'text-slate-600 hover:bg-slate-100'}" %>
+          </nav>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

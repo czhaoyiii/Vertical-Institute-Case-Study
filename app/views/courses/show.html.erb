@@ -1,0 +1,55 @@
+<% content_for :title, "#{@course.name} · Vertical Institute" %>
+
+<div class="mx-auto max-w-7xl space-y-6">
+  <%= link_to courses_path, class: "inline-flex items-center gap-x-1.5 text-sm font-medium text-slate-600 hover:text-slate-900" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+    </svg>
+    Back to Courses
+  <% end %>
+
+  <header>
+    <p class="text-xs font-medium uppercase tracking-wide text-slate-500"><%= @course.code %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-900"><%= @course.name %></h1>
+    <p class="mt-1 text-sm text-slate-500">
+      <%= @course.total_lessons %> lessons · <%= @course.total_assignments %> assignments
+    </p>
+  </header>
+
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <%= render "shared/stat_card", title: "Enrolled",    value: @enrollments.size,     icon: :users,   tone: "default" %>
+    <%= render "shared/stat_card", title: "Low Risk",    value: @counts["low"].to_i,   icon: :trend,   tone: "emerald" %>
+    <%= render "shared/stat_card", title: "Medium Risk", value: @counts["medium"].to_i, icon: :warning, tone: "amber" %>
+    <%= render "shared/stat_card", title: "High Risk",   value: @counts["high"].to_i,  icon: :alert,   tone: "rose" %>
+  </div>
+
+  <div class="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
+    <div class="border-b border-slate-100 p-5">
+      <h2 class="text-base font-semibold text-slate-900">All enrolled students</h2>
+      <p class="text-sm text-slate-500">Sorted by risk severity.</p>
+    </div>
+
+    <% if @enrollments.empty? %>
+      <div class="p-5">
+        <%= render "shared/empty_state", title: "No enrollments yet", description: "Once students enrol, they'll appear here." %>
+      </div>
+    <% else %>
+      <ul class="divide-y divide-slate-100">
+        <% @enrollments.each do |e| %>
+          <li>
+            <%= link_to student_path(e.student), class: "flex items-center justify-between gap-4 p-4 hover:bg-slate-50 sm:p-5" do %>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-slate-900"><%= e.student.full_name %></p>
+                <p class="truncate text-xs text-slate-500"><%= e.student.email %> · <%= relative_last_active(e.last_active_at) %></p>
+              </div>
+              <div class="hidden flex-1 sm:block">
+                <%= render "shared/progress_bar", enrollment: e %>
+              </div>
+              <%= risk_badge(e.risk_level) %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

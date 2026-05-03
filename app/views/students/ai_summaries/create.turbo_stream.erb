@@ -1,0 +1,11 @@
+<%= turbo_stream.replace dom_id(@enrollment, :ai_panel) do %>
+  <%= turbo_frame_tag dom_id(@enrollment, :ai_panel), class: "block h-full" do %>
+    <%= render "shared/ai_panel", enrollment: @enrollment, notice: @notice %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(@enrollment, :follow_up) do %>
+  <%= turbo_frame_tag dom_id(@enrollment, :follow_up) do %>
+    <%= render "students/follow_up_actions", enrollment: @enrollment %>
+  <% end %>
+<% end %>

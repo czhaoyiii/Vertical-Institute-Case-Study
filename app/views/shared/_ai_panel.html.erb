@@ -1,0 +1,102 @@
+<%
+  notice ||= nil
+  e         = enrollment
+  ai        = e.latest_ai_summary
+  source_label = ai&.source == "openai" ? "OpenAI · gpt-4o-mini" : "Mock AI · offline mode"
+%>
+
+<section class="flex h-full flex-col overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
+  <header class="flex items-center justify-between px-6 pt-6">
+    <div class="flex items-center gap-x-2">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+          <path d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 0 1 .75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 0 1 9.75 22.5a.75.75 0 0 1-.75-.75v-4.131A15.838 15.838 0 0 1 6.382 15H2.25a.75.75 0 0 1-.75-.75 6.75 6.75 0 0 1 7.815-6.666ZM15 6.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z"/>
+        </svg>
+      </span>
+      <h2 class="text-lg font-semibold text-slate-900">AI Insights</h2>
+    </div>
+    <span class="rounded-full px-2.5 py-1 text-[11px] font-medium <%= ai&.source == "openai" ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200' %>">
+      <%= source_label %>
+    </span>
+  </header>
+
+  <div class="mt-4 flex flex-1 flex-col overflow-y-auto px-6 pb-6 min-h-0">
+    <% if notice.present? %>
+      <p class="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-amber-200"><%= notice %></p>
+    <% end %>
+
+    <% if ai.blank? %>
+      <div class="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 px-4 py-10 text-center" data-ai-panel-target="content">
+        <p class="text-sm font-medium text-slate-900">Generating AI insights…</p>
+      </div>
+    <% else %>
+      <div class="flex flex-1 flex-col gap-5" data-ai-panel-target="content">
+        <% if ai.source == "offline" %>
+          <div class="flex items-center gap-x-2 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-slate-500">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-1 9a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 1.5 0v4.5A.75.75 0 0 1 10 15Z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-xs text-slate-700">Offline output — set <code class="font-mono text-[11px]">OPENAI_API_KEY</code> in <code class="font-mono text-[11px]">.env</code> to use the live model.</p>
+          </div>
+        <% end %>
+
+        <section>
+          <h3 class="flex items-center gap-x-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" class="h-3.5 w-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
+            </svg>
+            Situation Summary
+          </h3>
+          <p class="mt-1.5 whitespace-pre-line text-sm text-slate-700"><%= ai.summary %></p>
+        </section>
+
+        <% if ai.immediate_action.present? %>
+          <section>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Immediate Action</h3>
+            <p class="mt-1.5 text-sm font-medium text-rose-700"><%= ai.immediate_action %></p>
+          </section>
+        <% end %>
+
+        <section>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Why This Student Is Flagged</h3>
+          <p class="mt-1.5 whitespace-pre-line text-sm text-slate-700"><%= ai.reasoning_narrative %></p>
+        </section>
+
+        <% if ai.recommended_action.present? %>
+          <section>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Recommended Action</h3>
+            <p class="mt-1.5 whitespace-pre-line text-sm text-slate-700"><%= ai.recommended_action %></p>
+          </section>
+        <% end %>
+
+        <% if Array(ai.next_steps).any? %>
+          <section>
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Suggested Next Steps</h3>
+            <ol class="mt-1.5 space-y-1.5 text-sm text-slate-700">
+              <% Array(ai.next_steps).each_with_index do |step, index| %>
+                <li class="flex items-start gap-x-2">
+                  <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600"><%= index + 1 %></span>
+                  <span><%= step %></span>
+                </li>
+              <% end %>
+            </ol>
+          </section>
+        <% end %>
+
+        <p class="mt-auto text-[11px] text-slate-400">Generated <%= time_ago_in_words(ai.generated_at) %> ago</p>
+      </div>
+    <% end %>
+  </div>
+
+  <template data-ai-panel-target="skeleton">
+    <div class="flex flex-1 flex-col gap-5">
+      <% 3.times do %>
+        <div class="space-y-2">
+          <div class="h-3 w-24 animate-pulse rounded bg-slate-200"></div>
+          <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+          <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
+        </div>
+      <% end %>
+    </div>
+  </template>
+</section>

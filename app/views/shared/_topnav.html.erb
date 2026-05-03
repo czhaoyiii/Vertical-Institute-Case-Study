@@ -1,0 +1,35 @@
+<%
+  nav_items = [
+    { label: "Dashboard", path: root_path,    match: -> { current_page?(root_path) || controller_name == "dashboard" || (controller_name == "students" && action_name == "index") } },
+    { label: "Courses",   path: courses_path, match: -> { controller_name == "courses" } }
+  ]
+%>
+
+<header class="border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <%= link_to root_path, class: "flex items-center gap-x-2.5" do %>
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+          <path fill-rule="evenodd" d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.61 54.61 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.85 1.85 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" clip-rule="evenodd"/>
+        </svg>
+      </span>
+      <div class="hidden sm:block">
+        <p class="text-sm font-semibold text-slate-900">Vertical Institute</p>
+        <p class="-mt-0.5 text-xs text-slate-500">At-Risk Follow-Up Tool</p>
+      </div>
+    <% end %>
+
+    <nav class="flex items-center gap-x-1 overflow-x-auto">
+      <% nav_items.each do |item| %>
+        <% active = item[:match].call %>
+        <%= link_to item[:label], item[:path],
+              class: "rounded-lg px-3 py-1.5 text-sm font-medium transition #{active ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}" %>
+      <% end %>
+    </nav>
+
+    <div class="hidden items-center gap-x-2 sm:flex">
+      <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">VI</div>
+      <span class="text-sm font-medium text-slate-700">Staff</span>
+    </div>
+  </div>
+</header>

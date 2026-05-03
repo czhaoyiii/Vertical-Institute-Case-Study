@@ -1,0 +1,105 @@
+<% content_for :title, "#{@student.full_name} · Vertical Institute" %>
+
+<div class="mx-auto max-w-7xl space-y-6">
+  <%= link_to root_path, class: "inline-flex items-center gap-x-1.5 text-sm font-medium text-slate-600 hover:text-slate-900" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+    </svg>
+    Back to Dashboard
+  <% end %>
+
+  <% if @primary_enrollment.nil? %>
+    <%= render "shared/empty_state", title: "No enrollments", description: "This student is not enrolled in any course." %>
+  <% else %>
+    <% e = @primary_enrollment %>
+
+    <header class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-x-4">
+        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 text-base font-semibold text-indigo-700">
+          <%= @student.initials %>
+        </div>
+        <div>
+          <div class="flex items-center gap-x-3">
+            <h1 class="text-2xl font-semibold text-slate-900"><%= @student.full_name %></h1>
+            <%= risk_badge(e.risk_level) %>
+          </div>
+          <p class="mt-1 inline-flex items-center gap-x-1.5 text-sm text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
+            </svg>
+            <%= @student.email %>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-6 text-sm">
+        <div>
+          <p class="flex items-center gap-x-1.5 text-xs font-medium text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+            </svg>
+            Course
+          </p>
+          <p class="mt-0.5 truncate font-medium text-slate-900"><%= e.course.name %></p>
+        </div>
+        <div>
+          <p class="flex items-center gap-x-1.5 text-xs font-medium text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+            </svg>
+            Enrolled
+          </p>
+          <p class="mt-0.5 font-medium text-slate-900"><%= e.enrolled_at.strftime("%b %-d, %Y") %></p>
+        </div>
+        <div>
+          <p class="flex items-center gap-x-1.5 text-xs font-medium text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+            Last Active
+          </p>
+          <p class="mt-0.5 font-medium text-slate-900"><%= relative_last_active(e.last_active_at) %></p>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="h-[500px]">
+        <%= render "students/risk_analysis", enrollment: e %>
+      </div>
+      <div class="h-[500px]">
+        <%= turbo_frame_tag dom_id(e, :ai_panel),
+              src: student_ai_summary_path(e.student, enrollment_id: e.id),
+              loading: "eager",
+              class: "block h-full" do %>
+          <section class="flex h-full flex-col overflow-hidden rounded-xl bg-white p-6 ring-1 ring-slate-200 shadow-sm">
+            <header class="flex items-center justify-between">
+              <div class="flex items-center gap-x-2">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                    <path d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 0 1 .75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 0 1 9.75 22.5a.75.75 0 0 1-.75-.75v-4.131A15.838 15.838 0 0 1 6.382 15H2.25a.75.75 0 0 1-.75-.75 6.75 6.75 0 0 1 7.815-6.666ZM15 6.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z"/>
+                  </svg>
+                </span>
+                <h2 class="text-lg font-semibold text-slate-900">AI Insights</h2>
+              </div>
+              <span class="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">Loading…</span>
+            </header>
+            <div class="mt-6 flex flex-1 flex-col gap-5">
+              <% 3.times do %>
+                <div class="space-y-2">
+                  <div class="h-3 w-24 animate-pulse rounded bg-slate-200"></div>
+                  <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+                  <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      </div>
+    </div>
+
+    <%= turbo_frame_tag dom_id(e, :follow_up) do %>
+      <%= render "students/follow_up_actions", enrollment: e %>
+    <% end %>
+  <% end %>
+</div>

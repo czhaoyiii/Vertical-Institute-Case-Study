@@ -1,0 +1,3 @@
+<%= turbo_frame_tag dom_id(@enrollment, :ai_panel), class: "block h-full" do %>
+  <%= render partial: "shared/ai_panel", locals: { enrollment: @enrollment, notice: @notice } %>
+<% end %>

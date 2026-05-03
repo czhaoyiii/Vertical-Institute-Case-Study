@@ -1,0 +1,83 @@
+<%
+  e              = enrollment
+  assessment     = RiskAssessment.call(e)
+  attendance_pct = e.attendance_rate ? (e.attendance_rate * 100).round : nil
+  days_inactive  = e.days_since_active.is_a?(Float) ? "—" : e.days_since_active
+%>
+
+<section class="flex h-full flex-col overflow-hidden rounded-xl bg-white p-6 ring-1 ring-slate-200 shadow-sm">
+  <header class="flex items-center gap-x-2">
+    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" class="h-4 w-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+      </svg>
+    </span>
+    <h2 class="text-lg font-semibold text-slate-900">Risk Analysis</h2>
+  </header>
+
+  <div class="mt-4 flex flex-1 flex-col overflow-y-auto space-y-6">
+    <div>
+      <div class="flex items-center justify-between text-sm text-slate-600">
+        <span class="font-medium">Course Progress</span>
+        <span class="tabular-nums"><%= (e.progress_pct * 100).round %>%</span>
+      </div>
+      <div class="relative mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100">
+        <div class="absolute inset-y-0 left-0 rounded-full <%= progress_bar_color(e) %>" style="width: <%= [ (e.progress_pct * 100).round, 100 ].min %>%"></div>
+      </div>
+      <p class="mt-1 text-xs text-slate-500"><%= e.lessons_viewed_count %> of <%= e.course.total_lessons %> lessons viewed</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <%
+        attendance_tone = attendance_pct.nil? || attendance_pct >= 70 ? "slate" : "rose"
+        inactive_tone   = e.days_since_active.is_a?(Float) || e.days_since_active >= 14 ? "rose" : (e.days_since_active >= 7 ? "amber" : "slate")
+        tone_classes = {
+          "rose"  => "bg-rose-50 text-rose-700 ring-rose-100",
+          "amber" => "bg-amber-50 text-amber-700 ring-amber-100",
+          "slate" => "bg-slate-50 text-slate-700 ring-slate-100"
+        }
+      %>
+      <div class="rounded-xl p-4 ring-1 <%= tone_classes[attendance_tone] %>">
+        <p class="text-xs font-medium opacity-80">Attendance Rate</p>
+        <p class="mt-1 text-2xl font-semibold tabular-nums"><%= attendance_pct ? "#{attendance_pct}%" : "—" %></p>
+        <p class="mt-0.5 text-xs opacity-80"><%= e.assignments_submitted_count %>/<%= e.course.total_assignments %> assignments submitted</p>
+      </div>
+      <div class="rounded-xl p-4 ring-1 <%= tone_classes[inactive_tone] %>">
+        <p class="text-xs font-medium opacity-80">Days Inactive</p>
+        <p class="mt-1 text-2xl font-semibold tabular-nums"><%= days_inactive %></p>
+        <p class="mt-0.5 text-xs opacity-80"><%= e.last_active_at ? "since last activity" : "no activity recorded" %></p>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-sm font-semibold text-slate-900">Risk Factors</h3>
+      <% if assessment.factors.empty? %>
+        <p class="mt-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 ring-1 ring-emerald-100">
+          No risk factors detected. This student is on track.
+        </p>
+      <% else %>
+        <ul class="mt-2 space-y-2">
+          <% assessment.factors.each do |factor| %>
+            <%
+              tone    = factor[:severity].to_s == "high" ? "rose" : "amber"
+              wrapper = tone == "rose" ? "bg-rose-50 ring-rose-100 text-rose-900" : "bg-amber-50 ring-amber-100 text-amber-900"
+              badge   = tone == "rose" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"
+            %>
+            <li class="flex items-start justify-between gap-x-3 rounded-lg p-3 ring-1 <%= wrapper %>">
+              <div class="flex min-w-0 items-start gap-x-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mt-0.5 h-4 w-4 flex-none opacity-80">
+                  <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z" clip-rule="evenodd"/>
+                </svg>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold"><%= factor[:label] %></p>
+                  <p class="text-xs opacity-80"><%= factor[:detail] %></p>
+                </div>
+              </div>
+              <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide <%= badge %>"><%= factor[:severity] %></span>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+  </div>
+</section>
