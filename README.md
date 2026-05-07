@@ -18,8 +18,8 @@ Built with Ruby on Rails 8.1, SQLite, Tailwind CSS, and OpenAI.
 ### 1. Clone and install dependencies
 
 ```bash
-git clone <repo-url>
-cd vi-case-study-project
+git clone https://github.com/czhaoyiii/Vertical-Institute-Case-Study
+cd Vertical-Institute-Case-Study
 bundle install
 ```
 
