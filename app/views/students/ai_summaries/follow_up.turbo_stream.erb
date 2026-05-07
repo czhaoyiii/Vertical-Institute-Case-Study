@@ -1,0 +1,5 @@
+<%= turbo_stream.replace dom_id(@enrollment, :follow_up) do %>
+  <%= turbo_frame_tag dom_id(@enrollment, :follow_up) do %>
+    <%= render "students/follow_up_actions", enrollment: @enrollment %>
+  <% end %>
+<% end %>

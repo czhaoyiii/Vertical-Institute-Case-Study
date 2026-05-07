@@ -12,8 +12,6 @@ class AiSummaryService
         immediate_action:    immediate_action,
         recommended_action:  recommended_action,
         next_steps:          next_steps || [],
-        follow_up_subject:   follow_up_subject,
-        follow_up_message:   follow_up_message,
         generated_at:        generated_at,
         model:               AiSummaryService::MODEL
       }

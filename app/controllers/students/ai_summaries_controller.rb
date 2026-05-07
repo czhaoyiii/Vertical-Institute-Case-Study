@@ -49,13 +49,7 @@ module Students
       @enrollment.reload
 
       respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            dom_id(@enrollment, :follow_up),
-            partial: "students/follow_up_actions",
-            locals:  { enrollment: @enrollment }
-          )
-        end
+        format.turbo_stream
         format.html { redirect_to student_path(@enrollment.student) }
       end
     end

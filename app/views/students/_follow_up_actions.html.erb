@@ -36,12 +36,12 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
             <path d="M10 1.5a.75.75 0 0 1 .686.448l1.687 3.857 3.857 1.687a.75.75 0 0 1 0 1.372l-3.857 1.687-1.687 3.857a.75.75 0 0 1-1.372 0L7.627 9.95 3.77 8.264a.75.75 0 0 1 0-1.372L7.627 5.205 9.314 1.948A.75.75 0 0 1 10 1.5Z"/>
           </svg>
-          <%= ai.present? ? "Regenerate Email" : "Generate Email" %>
+          <%= ai&.follow_up_message.present? ? "Regenerate Email" : "Generate Email" %>
         </button>
       <% end %>
     </div>
 
-    <% if ai.blank? %>
+    <% if ai&.follow_up_message.blank? %>
       <div class="p-8 text-center">
         <p class="text-sm text-slate-500">Click <span class="font-medium text-slate-700">Generate</span> to draft a personalised follow-up email based on this student's situation.</p>
       </div>
