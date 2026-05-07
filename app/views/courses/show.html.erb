@@ -37,7 +37,7 @@
       <ul class="divide-y divide-slate-100">
         <% @enrollments.each do |e| %>
           <li>
-            <%= link_to student_path(e.student), class: "flex items-center justify-between gap-4 p-4 hover:bg-slate-50 sm:p-5" do %>
+            <%= link_to student_path(e.student, enrollment_id: e.id), class: "flex items-center justify-between gap-4 p-4 hover:bg-slate-50 sm:p-5" do %>
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-medium text-slate-900"><%= e.student.full_name %></p>
                 <p class="truncate text-xs text-slate-500"><%= e.student.email %> · <%= relative_last_active(e.last_active_at) %></p>
