@@ -11,34 +11,12 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_05_03_000005) do
-  create_table "activities", force: :cascade do |t|
+  create_table "students", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.integer "enrollment_id", null: false
-    t.string "kind", null: false
-    t.text "metadata"
-    t.datetime "occurred_at", null: false
-    t.index ["enrollment_id", "occurred_at"], name: "index_activities_on_enrollment_id_and_occurred_at"
-    t.index ["enrollment_id"], name: "index_activities_on_enrollment_id"
-    t.index ["kind"], name: "index_activities_on_kind"
-  end
-
-  create_table "ai_summaries", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "enrollment_id", null: false
-    t.text "follow_up_message"
-    t.text "follow_up_subject"
-    t.datetime "generated_at", null: false
-    t.text "immediate_action"
-    t.string "model"
-    t.text "next_steps"
-    t.string "prompt_version"
-    t.text "reasoning_narrative"
-    t.text "recommended_action"
-    t.string "source", null: false
-    t.text "summary"
+    t.string "email", null: false
+    t.string "full_name", null: false
     t.datetime "updated_at", null: false
-    t.index ["enrollment_id", "generated_at"], name: "index_ai_summaries_on_enrollment_id_and_generated_at"
-    t.index ["enrollment_id"], name: "index_ai_summaries_on_enrollment_id"
+    t.index ["email"], name: "index_students_on_email", unique: true
   end
 
   create_table "courses", force: :cascade do |t|
@@ -67,12 +45,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_000005) do
     t.index ["student_id"], name: "index_enrollments_on_student_id"
   end
 
-  create_table "students", force: :cascade do |t|
+  create_table "activities", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "email", null: false
-    t.string "full_name", null: false
+    t.integer "enrollment_id", null: false
+    t.string "kind", null: false
+    t.text "metadata"
+    t.datetime "occurred_at", null: false
+    t.index ["enrollment_id", "occurred_at"], name: "index_activities_on_enrollment_id_and_occurred_at"
+    t.index ["enrollment_id"], name: "index_activities_on_enrollment_id"
+    t.index ["kind"], name: "index_activities_on_kind"
+  end
+
+  create_table "ai_summaries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "enrollment_id", null: false
+    t.text "follow_up_message"
+    t.text "follow_up_subject"
+    t.datetime "generated_at", null: false
+    t.text "immediate_action"
+    t.string "model"
+    t.text "next_steps"
+    t.string "prompt_version"
+    t.text "reasoning_narrative"
+    t.text "recommended_action"
+    t.string "source", null: false
+    t.text "summary"
     t.datetime "updated_at", null: false
-    t.index ["email"], name: "index_students_on_email", unique: true
+    t.index ["enrollment_id", "generated_at"], name: "index_ai_summaries_on_enrollment_id_and_generated_at"
+    t.index ["enrollment_id"], name: "index_ai_summaries_on_enrollment_id"
   end
 
   add_foreign_key "activities", "enrollments"
